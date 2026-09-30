@@ -109,3 +109,54 @@ async def chat_json(system_prompt: str, user_prompt: str, model: str = None,
             await asyncio.sleep(backoff)
             backoff *= 2
     raise last_error if last_error else LLMError("未知错误，重试耗尽")
+
+
+async def chat_stream(messages: list, model: str = None,
+                      temperature: float = 0.3):
+    """流式调用大模型，逐段 yield 文本增量（delta content）。
+
+    网络错误时重试一次；连接成功后的中途异常向上抛出由调用方降级。
+    """
+    model = model or settings.ARK_MODEL_MAIN
+    url = f"{settings.ARK_BASE_URL}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {settings.ARK_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "stream": True,
+    }
+
+    for attempt in range(2):
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                async with client.stream("POST", url, headers=headers,
+                                         json=payload) as resp:
+                    if resp.status_code != 200:
+                        body = await resp.aread()
+                        raise LLMError(
+                            f"ARK stream HTTP {resp.status_code}: {body[:300]!r}")
+                    async for line in resp.aiter_lines():
+                        if not line or not line.startswith("data:"):
+                            continue
+                        data = line[len("data:"):].strip()
+                        if data == "[DONE]":
+                            return
+                        try:
+                            chunk = json.loads(data)
+                            delta = chunk["choices"][0].get("delta", {})
+                            piece = delta.get("content")
+                            if piece:
+                                yield piece
+                        except (json.JSONDecodeError, KeyError, IndexError):
+                            continue
+            return
+        except httpx.TransportError:
+            if attempt == 0:
+                import asyncio
+                await asyncio.sleep(2)
+                continue
+            raise

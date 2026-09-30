@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>投资命题多证据验证台 | Thesis Verifier</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/static/styles.css" />
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            ink: '#0f2540',
-            brand: '#1d4ed8',
-          },
+          colors: { ink: '#0f2540', brand: '#1d4ed8' },
           fontFamily: {
             sans: ['"PingFang SC"', '"Microsoft YaHei"', 'system-ui', 'sans-serif'],
           },
@@ -22,86 +20,89 @@
     };
   </script>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+<body class="font-sans antialiased text-slate-800">
 
-  <!-- 顶部导航 -->
-  <header class="bg-ink text-white shadow-lg">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-brand flex items-center justify-center font-bold text-lg">验</div>
-        <div>
-          <h1 class="text-lg font-bold leading-tight">投资命题多证据验证台</h1>
-          <p class="text-xs text-slate-300">Investment Thesis Multi-Evidence Verifier</p>
+<div class="app-shell">
+
+  <!-- 左侧栏 -->
+  <aside id="sidebar" class="sidebar">
+    <div class="px-4 pt-4 pb-3 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold text-sm">验</div>
+      <span class="font-bold text-ink text-sm">投资命题验证台</span>
+    </div>
+
+    <div class="px-3">
+      <button id="newChatBtn"
+        class="w-full flex items-center justify-center gap-2 rounded-lg bg-brand hover:bg-blue-700 text-white text-sm font-semibold py-2.5 transition">
+        <span class="text-lg leading-none">＋</span> 新建对话
+      </button>
+    </div>
+
+    <div class="px-3 mt-4 flex-1 overflow-y-auto">
+      <div class="text-[11px] text-slate-400 px-2 mb-1">历史对话</div>
+      <div id="conversationList" class="space-y-0.5"></div>
+    </div>
+
+    <div class="px-4 py-3 border-t border-slate-200 text-[10px] leading-relaxed text-slate-400">
+      数据：扶摇金融数据 API<br />智能：豆包大模型
+    </div>
+  </aside>
+
+  <!-- 遮罩（移动端） -->
+  <div id="sidebarMask" class="sidebar-mask"></div>
+
+  <!-- 主区域 -->
+  <main class="main-pane">
+
+    <!-- 顶栏 -->
+    <header class="main-header">
+      <button id="menuToggle" class="md:hidden text-slate-600 text-xl px-1">☰</button>
+      <div id="chatTitle" class="text-sm font-semibold text-ink truncate">投资命题多证据验证台</div>
+      <div class="flex-1"></div>
+      <span class="hidden sm:inline text-[11px] text-slate-400">拆解 · 取证 · 冲突处理 · 可追溯结论</span>
+    </header>
+
+    <!-- 消息流 -->
+    <div id="messages" class="messages">
+
+      <!-- 空状态 -->
+      <div id="welcome" class="welcome">
+        <div class="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">验</div>
+        <h1 class="text-xl font-bold text-ink mb-2">验证你的投资命题</h1>
+        <p class="text-sm text-slate-500 max-w-md mx-auto mb-6">
+          输入一个投资判断，我会把它拆成可验证子问题，调用真实金融数据，
+          同时给出<b class="text-slate-700">支持、反对与无法验证</b>的证据链，并明确结论与翻转条件。
+        </p>
+        <div class="flex flex-wrap justify-center gap-2 max-w-xl">
+          <button class="suggest-btn">贵州茅台2023年盈利增长主要来自主营业务</button>
+          <button class="suggest-btn">宁德时代估值回落但基本面没有恶化</button>
+          <button class="suggest-btn">比亚迪近三年盈利能力持续提升</button>
+        </div>
+        <div class="mt-8 max-w-lg mx-auto rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-[11px] text-amber-800 leading-relaxed">
+          本产品仅提供基于公开数据的事实验证，不输出涨跌预测、目标价、收益承诺或买卖建议；事实、推断与不确定信息明确区分，结论可溯源。
         </div>
       </div>
-      <div class="text-xs text-slate-300 hidden sm:block">
-        拆解命题 · 取证验证 · 冲突处理 · 可追溯结论
-      </div>
-    </div>
-  </header>
 
-  <main class="max-w-6xl mx-auto px-6 py-8">
-
-    <!-- 合规提示条 -->
-    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 flex gap-2">
-      <span class="font-bold">合规说明</span>
-      <span>本产品仅提供基于公开数据的事实验证与研究辅助，<b>不输出确定性涨跌预测、目标价、收益承诺或直接买卖建议</b>；事实、推断与不确定信息均明确区分，关键结论可回溯至原始数据。</span>
     </div>
 
-    <!-- 输入区 -->
-    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-      <label class="block text-sm font-semibold text-ink mb-2">第一步：输入你想验证的投资命题</label>
-      <textarea id="thesisInput" rows="3"
-        class="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:ring-2 focus:ring-brand focus:border-brand outline-none resize-none"
-        placeholder="例如：贵州茅台2023年盈利增长主要来自主营业务"></textarea>
-
-      <div class="mt-3 flex flex-wrap items-center gap-2">
-        <span class="text-xs text-slate-500">示例：</span>
-        <button class="example-btn text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
-          data-thesis="贵州茅台2023年盈利增长主要来自主营业务">贵州茅台盈利增长来自主营业务</button>
-        <button class="example-btn text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
-          data-thesis="宁德时代估值回落但基本面没有恶化">宁德时代估值回落但基本面未恶化</button>
-        <button class="example-btn text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
-          data-thesis="比亚迪近三年盈利能力持续提升">比亚迪近三年盈利能力持续提升</button>
-      </div>
-
-      <div class="mt-4 flex items-center gap-3">
-        <button id="analyzeBtn"
-          class="px-6 py-2.5 rounded-lg bg-brand hover:bg-blue-700 text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition">
-          <span id="analyzeBtnText">开始验证</span>
+    <!-- 底部输入区 -->
+    <div class="composer-wrap">
+      <div class="composer">
+        <textarea id="composerInput" rows="1"
+          placeholder="输入投资命题，或基于结论继续追问…"></textarea>
+        <button id="sendBtn" title="发送">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
         </button>
-        <span id="inputError" class="text-xs text-rose-600 hidden"></span>
       </div>
-    </section>
-
-    <!-- 进度状态 -->
-    <section id="progressSection" class="hidden mb-8">
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="spinner"></div>
-          <span class="text-sm font-semibold text-ink">正在执行验证链路，请稍候（通常需要 1-3 分钟）…</span>
-        </div>
-        <div id="progressSteps" class="space-y-2 text-xs text-slate-600"></div>
-      </div>
-    </section>
-
-    <!-- 结果区 -->
-    <section id="resultSection" class="hidden space-y-8"></section>
-
-    <!-- 顶层错误 -->
-    <section id="errorSection" class="hidden">
-      <div class="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700" id="errorContent"></div>
-    </section>
+      <div class="composer-hint">Enter 发送 · Shift + Enter 换行</div>
+    </div>
 
   </main>
+</div>
 
-  <footer class="border-t border-slate-200 bg-white mt-12">
-    <div class="max-w-6xl mx-auto px-6 py-5 text-xs text-slate-400 flex flex-wrap justify-between gap-2">
-      <span>数据来源：扶摇金融数据 API · iFinD（接入中）；智能能力：豆包大模型</span>
-      <span>投资有风险，本工具结论仅供研究参考，不构成投资建议</span>
-    </div>
-  </footer>
-
-  <script src="/static/app.js"></script>
+<script src="/static/app.js"></script>
 </body>
 </html>
