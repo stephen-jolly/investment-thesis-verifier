@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from backend.agents.pipeline import stream_pipeline
-from backend.agents.llm_client import chat_json
+from backend.agents.llm_client import chat_json, chat_stream
 from backend.prompts.templates import (
     FOLLOWUP_SYSTEM, FOLLOWUP_USER,
 )
@@ -29,8 +29,9 @@ def _get_session(conv_id: str | None):
     if not conv_id or conv_id not in SESSIONS:
         conv_id = conv_id or str(uuid.uuid4())
         SESSIONS[conv_id] = {
-            "messages": [],      # [{role:'user'|'assistant', content}]
-            "last_result": None,  # 最近一次完整验证结果
+            "messages": [],       # [{role:'user'|'assistant', content}]
+            "last_result": None,  # 最近一次完整验证结果（内部溯源/测试）
+            "last_markdown": None,  # 最近一次给用户看的 Markdown 报告
             "title": None,
         }
     return conv_id, SESSIONS[conv_id]
@@ -44,22 +45,29 @@ class ChatRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # 意图路由与上下文摘要
 # ---------------------------------------------------------------------------
-INTENT_SYSTEM = """你是对话意图分类器。判断用户这句话是要「验证一个新的投资命题」，还是「针对上一次的研究结果继续追问/讨论」。
-只输出 JSON：{"intent": "new_thesis 或 followup"}"""
+INTENT_SYSTEM = """你是对话意图分类器。判断用户这句话属于以下哪一类：
+- new_thesis：要验证一个新的投资命题（对某公司/行业的财务、估值、行情、盈利能力等判断）；
+- followup：针对上一次研究结果继续追问或讨论（仍与投资研究相关）；
+- out_of_scope：与投资研究无关的内容，例如询问今天星期几/日期天气、闲聊、让写代码、通用常识问答等。
+只输出 JSON：{"intent": "new_thesis / followup / out_of_scope"}"""
 
 
 async def _classify_intent(message: str, has_last: bool) -> str:
-    if not has_last:
-        return "new_thesis"
     try:
         r = await chat_json(
             INTENT_SYSTEM, f"用户这句话：{message}",
             model=settings.ARK_MODEL_LITE, temperature=0.0,
         )
-        intent = r.get("intent", "followup")
-        return intent if intent in ("new_thesis", "followup") else "followup"
+        intent = r.get("intent", "")
+        if intent in ("new_thesis", "followup", "out_of_scope"):
+            # 没有历史结果时，followup 不成立，按新命题兜底
+            if intent == "followup" and not has_last:
+                return "new_thesis"
+            return intent
     except Exception:
-        return "followup"
+        pass
+    # 兜底
+    return "followup" if has_last else "new_thesis"
 
 
 def _summarize_prior(full: dict) -> str:
@@ -91,6 +99,13 @@ def _summarize_prior(full: dict) -> str:
 # ---------------------------------------------------------------------------
 # SSE 事件生产
 # ---------------------------------------------------------------------------
+OUT_OF_SCOPE_REPLY = (
+    "我只专注于帮你**验证投资命题**，例如「贵州茅台2023年盈利增长主要来自主营业务」"
+    "这类判断——我会把它拆开、调取真实数据，并给出可追溯的结论。\n\n"
+    "你可以换一个与投资研究相关的问题，或直接在下方输入一个投资命题试试。"
+)
+
+
 async def _produce_events(message: str, session: dict, queue: asyncio.Queue):
     """把一次对话的全部事件放入队列。"""
     put = queue.put
@@ -99,15 +114,31 @@ async def _produce_events(message: str, session: dict, queue: asyncio.Queue):
             message, session.get("last_result") is not None)
         await put({"type": "meta", "intent": intent})
 
-        if intent == "new_thesis":
+        if intent == "out_of_scope":
+            # 无关问题：不调用数据，流式给出引导
+            await put({"type": "status", "stage": "out_of_scope",
+                       "label": "该问题超出我的服务范围"})
+            for i in range(0, len(OUT_OF_SCOPE_REPLY), 3):
+                await put({"type": "answer_delta",
+                           "text": OUT_OF_SCOPE_REPLY[i:i + 3]})
+                await asyncio.sleep(0.015)
+
+        elif intent == "new_thesis":
+            report_md = []
             async for ev in stream_pipeline(message):
+                if ev["type"] == "answer_delta":
+                    report_md.append(ev["text"])
                 await put(ev)
                 if ev["type"] == "done":
+                    md = "".join(report_md)
+                    ev["data"]["report_markdown"] = md
                     session["last_result"] = ev["data"]
+                    session["last_markdown"] = md
                     if not session["title"]:
                         session["title"] = message[:24]
+
         else:
-            # 追问：结构化调用后，以打字机方式流式推送 answer
+            # 追问：基于已有研究，真流式输出 Markdown
             full = session["last_result"]
             user_prompt = FOLLOWUP_USER.format(
                 thesis=full.get("thesis"),
@@ -116,20 +147,15 @@ async def _produce_events(message: str, session: dict, queue: asyncio.Queue):
             )
             await put({"type": "status", "stage": "followup",
                        "label": "正在结合已有研究结果思考…"})
-            data = await chat_json(
-                FOLLOWUP_SYSTEM, user_prompt,
-                model=settings.ARK_MODEL_MAIN, temperature=0.3,
-            )
-            answer = data.get("answer", "（未返回有效回答）")
-            # 小步长切片，前端逐字呈现
-            step = 4
-            for i in range(0, len(answer), step):
-                await put({"type": "answer_delta",
-                           "text": answer[i:i + step]})
-                await asyncio.sleep(0.02)
-            await put({"type": "followup_done",
-                       "needs_more_data": data.get("needs_more_data"),
-                       "suggested_tool": data.get("suggested_tool")})
+            messages = [
+                {"role": "system", "content": FOLLOWUP_SYSTEM},
+                {"role": "user", "content": user_prompt},
+            ]
+            async for piece in chat_stream(
+                messages, model=settings.ARK_MODEL_MAIN, temperature=0.3
+            ):
+                await put({"type": "answer_delta", "text": piece})
+            await put({"type": "followup_done"})
     except Exception as e:
         await put({"type": "error",
                    "message": f"处理异常：{type(e).__name__}: {str(e)[:200]}"})
@@ -195,11 +221,15 @@ async def health():
 
 @app.get("/api/conversation/{conv_id}")
 async def get_conversation(conv_id: str):
-    """历史会话回放：返回该会话最近一次完整验证结果（内存中存在时）。"""
+    """历史会话回放：返回该会话最近一次给用户看的 Markdown 报告。"""
     session = SESSIONS.get(conv_id)
-    if not session or not session.get("last_result"):
-        return {"ok": False, "result": None}
-    return {"ok": True, "result": session["last_result"]}
+    if not session or not session.get("last_markdown"):
+        return {"ok": False, "markdown": None, "thesis": None}
+    return {
+        "ok": True,
+        "markdown": session["last_markdown"],
+        "thesis": session.get("title"),
+    }
 
 
 # 静态文件托管（放在 API 路由之后注册）

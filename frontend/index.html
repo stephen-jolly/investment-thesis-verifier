@@ -3,43 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>投资命题多证据验证台 | Thesis Verifier</title>
+  <title>投资命题验证台 | Thesis Verifier</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <link rel="stylesheet" href="/static/styles.css" />
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { ink: '#0f2540', brand: '#1d4ed8' },
-          fontFamily: {
-            sans: ['"PingFang SC"', '"Microsoft YaHei"', 'system-ui', 'sans-serif'],
-          },
-        },
-      },
-    };
-  </script>
 </head>
-<body class="font-sans antialiased text-slate-800">
+<body>
 
 <div class="app-shell">
 
   <!-- 左侧栏 -->
   <aside id="sidebar" class="sidebar">
     <div class="px-4 pt-4 pb-3 flex items-center gap-2">
-      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold text-sm">验</div>
-      <span class="font-bold text-ink text-sm">投资命题验证台</span>
+      <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white text-xs font-bold">验</div>
+      <span class="font-semibold text-ink text-sm">投资命题验证台</span>
     </div>
 
     <div class="px-3">
       <button id="newChatBtn"
-        class="w-full flex items-center justify-center gap-2 rounded-lg bg-brand hover:bg-blue-700 text-white text-sm font-semibold py-2.5 transition">
-        <span class="text-lg leading-none">＋</span> 新建对话
+        class="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 transition">
+        ＋ 新建对话
       </button>
     </div>
 
     <div class="px-3 mt-4 flex-1 overflow-y-auto">
-      <div class="text-[11px] text-slate-400 px-2 mb-1">历史对话</div>
       <div id="conversationList" class="space-y-0.5"></div>
     </div>
 
@@ -48,38 +36,33 @@
     </div>
   </aside>
 
-  <!-- 遮罩（移动端） -->
   <div id="sidebarMask" class="sidebar-mask"></div>
 
   <!-- 主区域 -->
   <main class="main-pane">
 
-    <!-- 顶栏 -->
     <header class="main-header">
       <button id="menuToggle" class="md:hidden text-slate-600 text-xl px-1">☰</button>
-      <div id="chatTitle" class="text-sm font-semibold text-ink truncate">投资命题多证据验证台</div>
-      <div class="flex-1"></div>
-      <span class="hidden sm:inline text-[11px] text-slate-400">拆解 · 取证 · 冲突处理 · 可追溯结论</span>
+      <div id="chatTitle" class="text-sm font-medium text-slate-600 truncate">投资命题验证台</div>
     </header>
 
     <!-- 消息流 -->
     <div id="messages" class="messages">
 
-      <!-- 空状态 -->
       <div id="welcome" class="welcome">
-        <div class="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">验</div>
-        <h1 class="text-xl font-bold text-ink mb-2">验证你的投资命题</h1>
-        <p class="text-sm text-slate-500 max-w-md mx-auto mb-6">
-          输入一个投资判断，我会把它拆成可验证子问题，调用真实金融数据，
-          同时给出<b class="text-slate-700">支持、反对与无法验证</b>的证据链，并明确结论与翻转条件。
+        <div class="w-12 h-12 rounded-xl bg-brand flex items-center justify-center text-white text-lg font-bold mx-auto mb-4">验</div>
+        <h1 class="text-lg font-semibold text-ink mb-2">验证你的投资命题</h1>
+        <p class="text-sm text-slate-500 max-w-md mx-auto mb-6 leading-relaxed">
+          输入一个投资判断，我会把它拆成可验证子问题、调取真实数据，
+          给出结论、关键依据与来源。
         </p>
         <div class="flex flex-wrap justify-center gap-2 max-w-xl">
           <button class="suggest-btn">贵州茅台2023年盈利增长主要来自主营业务</button>
           <button class="suggest-btn">宁德时代估值回落但基本面没有恶化</button>
           <button class="suggest-btn">比亚迪近三年盈利能力持续提升</button>
         </div>
-        <div class="mt-8 max-w-lg mx-auto rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-[11px] text-amber-800 leading-relaxed">
-          本产品仅提供基于公开数据的事实验证，不输出涨跌预测、目标价、收益承诺或买卖建议；事实、推断与不确定信息明确区分，结论可溯源。
+        <div class="mt-8 max-w-lg mx-auto text-[11px] text-slate-400 leading-relaxed">
+          仅提供基于公开数据的事实验证，不输出涨跌预测、目标价或买卖建议。
         </div>
       </div>
 

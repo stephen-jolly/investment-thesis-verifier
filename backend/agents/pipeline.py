@@ -6,10 +6,11 @@
 """
 import time
 import httpx
+from urllib.parse import quote
 
 from backend.agents.decomposer import decompose
 from backend.agents.evidence import analyze_sub_question_group
-from backend.agents.conclusion import build_conclusion
+from backend.agents.conclusion import build_conclusion, stream_report
 from backend.data_sources.fuyao import search_ticker
 
 # 工具中文名（用于过程展示）
@@ -56,23 +57,45 @@ def _group_by_tool(sub_questions: list):
     return [(tool, groups[tool]) for tool in order]
 
 
+def _annual_report_links(target_name: str, sub_results: list) -> str:
+    """根据取数中出现的 fiscal_year，构造巨潮资讯网年报原文检索链接（可溯源）。"""
+    years = set()
+    for sr in sub_results:
+        for r in sr.get("raw_data", []) or []:
+            y = r.get("fiscal_year")
+            if y:
+                years.add(str(y))
+    if not years or not target_name:
+        return ""
+    lines = []
+    for y in sorted(years, reverse=True):
+        kw = quote(f"{target_name}{y}年年度报告")
+        url = (
+            "http://www.cninfo.com.cn/new/fulltextSearch"
+            f"?notautosubmit=&keyWord={kw}"
+        )
+        lines.append(f"- [{y} 年年度报告原文（巨潮资讯网）]({url})")
+    return "\n".join(lines)
+
+
 async def stream_pipeline(thesis: str):
     """异步生成器：逐阶段 yield 事件字典。
 
-    事件类型：
-      {type:'status', stage, label}                 阶段状态（驱动时间线）
-      {type:'decomposition', data}                 拆解完成
-      {type:'sub_results', tool, data:[records]}   一组子问题取证完成
-      {type:'conclusion', data}                    综合结论
-      {type:'done', data: full_result}             完整结果
-      {type:'error', message}                      致命错误
+    面向用户的呈现做了简化（结论先行、简洁 Markdown）：
+      {type:'status', stage, label}      轻量阶段状态（一行提示，不做时间线）
+      {type:'report_start'}              报告开始（前端据此切换到正文）
+      {type:'answer_delta', text}        Markdown 报告流式增量
+      {type:'done', data: full_result}   完整结果（内部存储/溯源/测试）
+      {type:'error', message}            致命错误
     """
     started = time.time()
     trace = []
 
-    # 1. 拆解
-    yield {"type": "status", "stage": "decompose",
-           "label": "正在拆解投资命题、识别标的与核心主张…"}
+    def status(stage, label):
+        return {"type": "status", "stage": stage, "label": label}
+
+    # 1. 拆解（内部计算，不向前端推结构化结果）
+    yield status("decompose", "正在理解命题、识别标的与核心主张…")
     t0 = time.time()
     try:
         decomposition = await decompose(thesis)
@@ -86,12 +109,10 @@ async def stream_pipeline(thesis: str):
         "elapsed_ms": int((time.time() - t0) * 1000),
         "sub_question_count": len(sub_questions),
     })
-    yield {"type": "decomposition", "data": decomposition}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         # 2. 确认标的
-        yield {"type": "status", "stage": "resolve_target",
-               "label": "正在确认研究标的与代码…"}
+        yield status("resolve_target", "正在确认研究标的与代码…")
         t0 = time.time()
         thscode = await _resolve_thscode(client, decomposition.get("target", {}))
         trace.append({
@@ -101,19 +122,19 @@ async def stream_pipeline(thesis: str):
             "thscode": thscode,
         })
 
-        # 3. 按工具分组，批量取证分析（逐组推送）
+        # 3. 按工具分组，批量取证分析（只推轻量状态）
         records_by_id = {}
         groups = _group_by_tool(sub_questions)
         for tool, group in groups:
             cn = TOOL_CN.get(tool, tool)
-            yield {"type": "tool_start", "tool": tool,
-                   "label": f"正在调用「{cn}」取证并验证 {len(group)} 个子问题…"}
+            yield status(f"evidence_{tool}",
+                         f"正在调取「{cn}」数据、验证 {len(group)} 个子问题…")
             t0 = time.time()
             try:
                 recs = await analyze_sub_question_group(client, group, thscode)
-                status = "ok"
+                state = "ok"
             except Exception as e:
-                status = f"error: {type(e).__name__}"
+                state = f"error: {type(e).__name__}"
                 from backend.agents.evidence import _build_record, _empty_analysis
                 err_main = {"ok": False, "tool": tool,
                             "source": tool, "data_time": None,
@@ -125,16 +146,13 @@ async def stream_pipeline(thesis: str):
                 ]
             for rec in recs:
                 records_by_id[rec["sub_question"].get("id")] = rec
-            fetch_ok = any(r["tool_result_meta"].get("ok") for r in recs)
             trace.append({
                 "step": f"evidence_group_{tool}",
-                "status": status,
+                "status": state,
                 "elapsed_ms": int((time.time() - t0) * 1000),
                 "tool": tool,
                 "sub_question_count": len(group),
-                "fetch_ok": fetch_ok,
             })
-            yield {"type": "sub_results", "tool": tool, "data": recs}
 
     # 按原始子问题顺序重组
     sub_results = [
@@ -143,24 +161,33 @@ async def stream_pipeline(thesis: str):
         if sq.get("id") in records_by_id
     ]
 
-    # 4. 综合结论
-    yield {"type": "status", "stage": "conclusion",
-           "label": "正在汇总证据、处理冲突并生成结论…"}
+    # 4. 结构化综合结论（内部，用于溯源/测试）
+    yield status("conclusion", "正在汇总证据、处理冲突、形成结论…")
     t0 = time.time()
     conclusion = await build_conclusion(thesis, sub_results)
     trace.append({
         "step": "conclusion", "status": "ok",
         "elapsed_ms": int((time.time() - t0) * 1000),
     })
-    yield {"type": "conclusion", "data": conclusion}
+
+    # 5. 流式撰写面向用户的简洁 Markdown 报告
+    target_name = decomposition.get("target", {}).get("name", "")
+    links = _annual_report_links(target_name, sub_results)
+    yield {"type": "report_start"}
+    async for piece in stream_report(
+        thesis, target_name, thscode, conclusion, sub_results, links
+    ):
+        yield {"type": "answer_delta", "text": piece}
 
     total_ms = int((time.time() - started) * 1000)
     full = {
         "thesis": thesis,
         "thscode": thscode,
+        "target_name": target_name,
         "decomposition": decomposition,
         "sub_results": sub_results,
         "conclusion": conclusion,
+        "report_markdown": None,  # 由 main.py 在流式结束后回填
         "meta": {
             "total_elapsed_ms": total_ms,
             "data_tool_groups": [g[0] for g in groups],
