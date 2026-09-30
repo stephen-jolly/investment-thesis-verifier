@@ -5,11 +5,11 @@ services:
     name: investment-thesis-verifier
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: python -m pip install --upgrade pip && pip install -r requirements.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
-        value: 3.13.0
+        value: 3.12.8
       # 以下密钥请在 Render Dashboard → Environment 中手动填写，不要写入仓库
       - key: FUYAO_API_KEY
         sync: false
