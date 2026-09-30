@@ -56,16 +56,21 @@
 
 ---
 
-## 四、产品功能
+## 四、产品功能（豆包式对话 Agent）
+
+产品采用「**对话外壳 + 结构化验证卡片内核**」：像聊天助手一样自然交互，但验证结果以可审阅的结构化卡片呈现，而非淹没在纯文本里。
 
 | 模块 | 说明 |
 |---|---|
-| 命题输入 | 文本框 + 一键示例，支持 Ctrl/Cmd+Enter 提交 |
-| 命题概览 | 标的、代码、核心主张、时间范围、待澄清问题 |
-| 子问题与证据链 | 每个子问题独立卡片，证据按立场用颜色区分，可展开查看**原始数据** |
-| 综合结论 | 判断徽标、置信度、结论摘要、证据冲突点、**关键翻转条件**、后续研究动作 |
-| 可观测记录 | 可展开查看每个环节的状态与耗时（trace） |
-| 继续追问 | 基于已有结论多轮提问，信息不足时提示需要补充的数据 |
+| 会话界面 | 三栏布局：左侧会话历史 / 新建对话，中间消息流，底部输入框；支持空状态示例一键发起 |
+| 流式工作过程 | 验证时实时点亮「拆解 → 确认标的 → 分组取证 → 综合结论」时间线（SSE 推送），完成后自动折叠、可随时展开 |
+| 命题概览卡 | 标的、代码、核心主张、时间范围 |
+| 证据矩阵总览 | 一张表汇总各子问题的结论、证据强度、关键数值与来源，全局一目了然 |
+| 子问题与证据链 | 子问题卡片随取证进度**逐张出现**；证据按立场配色，标注事实/推断、强度、来源、字段，可展开查看**原始数据** |
+| 关键数据图表 | Chart.js 渲染营收/利润趋势、经营现金流 vs 归母净利润等对比图 |
+| 综合结论卡 | 判断徽标、置信度、结论摘要、证据冲突点、**关键翻转条件**、后续研究动作 |
+| 多轮追问 | 基于已有结论继续提问，回答逐字流式输出，结合上下文并区分事实与推断 |
+| 会话历史回放 | 会话保存在侧边栏，刷新后可点击回放完整结构化结果（服务内存期内） |
 
 ---
 
@@ -102,29 +107,29 @@
 ```
 investment-thesis-verifier/
 ├── backend/
-│   ├── main.py                 # FastAPI：/api/analyze、/api/followup、/api/health
+│   ├── main.py                 # FastAPI：/api/chat(SSE 流式)、/api/conversation/{id}、/api/health
 │   ├── config.py               # 环境变量配置
 │   ├── data_sources/
 │   │   └── fuyao.py            # 扶摇 API 封装（统一响应结构 + 429 退避重试）
 │   ├── agents/
-│   │   ├── llm_client.py       # 大模型调用 + 稳健 JSON 解析 + 网络/格式重试
+│   │   ├── llm_client.py       # 大模型调用：稳健 JSON 解析 + 流式输出 + 网络/格式重试
 │   │   ├── decomposer.py       # 环节① 命题拆解
 │   │   ├── evidence.py         # 环节③④ 分组批量取证与证据分类
 │   │   ├── conclusion.py       # 环节⑤ 综合结论
-│   │   └── pipeline.py         # 主链路编排 + trace 可观测
+│   │   └── pipeline.py         # 主链路编排：stream_pipeline 事件生成器 + trace 可观测
 │   └── prompts/
 │       └── templates.py        # 全部 Prompt 模板
 ├── frontend/
-│   ├── index.html              # 单页界面（Tailwind CSS）
-│   ├── app.js                  # 前端交互与渲染
-│   └── styles.css              # 证据配色、徽标、折叠、原始数据块
-├── tests/                      # 测试脚本与结果
+│   ├── index.html              # 三栏对话界面（Tailwind CSS + Chart.js）
+│   ├── app.js                  # SSE 读取、消息/卡片/图表渲染、会话历史
+│   └── styles.css              # 对话、时间线、证据配色、徽标、图表、折叠、原始数据
+├── tests/                      # 测试脚本与结果（quick_test / test_sse）
 ├── requirements.txt
 ├── render.yaml                 # Render 部署蓝图
 └── .env.example
 ```
 
-**技术选型**：FastAPI + 原生异步 httpx + 豆包大模型 + Tailwind 单页前端。刻意保持轻量、无重型框架依赖，便于审阅与复现。
+**技术选型**：FastAPI + 原生异步 httpx + SSE 流式 + 豆包大模型 + Tailwind 单页前端 + Chart.js 图表。刻意保持轻量、无重型框架依赖，便于审阅与复现。
 
 ---
 
@@ -132,7 +137,7 @@ investment-thesis-verifier/
 
 ### 1. 环境要求
 
-- Python 3.10+（开发与验证使用 3.13）
+- Python 3.10+（云端部署使用 3.12，以使用预编译的 pydantic-core wheel）
 
 ### 2. 安装依赖
 
@@ -180,16 +185,22 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/health` | 健康检查与配置状态 |
-| POST | `/api/analyze` | 完整验证链路，body：`{"thesis": "命题"}` |
-| POST | `/api/followup` | 基于已有结论追问，body：`{"thesis","prior_result","question"}` |
+| POST | `/api/chat` | 统一对话入口（SSE 流式），自动区分「新命题 / 追问」，body：`{"message": "...", "conversation_id": "可选"}` |
+| GET | `/api/conversation/{conv_id}` | 历史会话回放，返回最近一次完整验证结果 |
+
+`/api/chat` 以 Server-Sent Events 逐帧推送 `status / decomposition / tool_start / sub_results / conclusion / answer_delta / done / error` 等事件，并带心跳保活；前端据此实时渲染工作过程与结构化卡片。
 
 ---
 
 ## 十一、测试说明
 
-见 `tests/quick_test.py`（端到端主链路）。测试覆盖：
+- `tests/quick_test.py`：端到端主链路（表单版接口）；
+- `tests/test_sse.py`：对话版 SSE 两轮测试 —— ① 新命题事件逐帧推送、子问题卡片随取证出现、最终结论；② 同一会话追问、意图识别与逐字流式回答。
+
+测试覆盖：
 
 - **主链路**：真实命题从拆解到结论的完整流程；
+- **流式与会话**：SSE 事件顺序完整、会话 ID 贯通、追问上下文正确；
 - **数据缺失 / 接口失败**：扶摇限流（code=429）自动退避重试；取数失败时子问题标记 `unverifiable`，不伪造；
 - **大模型异常**：网络 ConnectError / DNS 故障自动重试；模型失败时降级保留原始数据；
 - **合规边界**：输出不包含涨跌预测、目标价、买卖建议，事实与推断明确区分。
@@ -210,8 +221,8 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 - [ ] 完成 iFinD MCP（SSE / Streamable HTTP）接入，支持公告、研报、新闻原文溯源；
 - [ ] 多个命题 / 多家公司的横向对比视图；
-- [ ] 研究任务的持久化保存、定时复查与翻转条件自动告警；
-- [ ] 更丰富的图表（趋势图、指标对比图）与证据图谱；
+- [ ] 研究任务的持久化保存（数据库替代内存）、定时复查与翻转条件自动告警；
+- [ ] 更丰富的图表类型与证据图谱；
 - [ ] 用户自定义数据工具与 Prompt 的可配置化；
 - [ ] 更完善的单元测试与 CI。
 
