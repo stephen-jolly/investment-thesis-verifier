@@ -1,0 +1,27 @@
+# Render 部署配置
+# 文档：https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: investment-thesis-verifier
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      # 以下密钥请在 Render Dashboard → Environment 中手动填写，不要写入仓库
+      - key: FUYAO_API_KEY
+        sync: false
+      - key: ARK_API_KEY
+        sync: false
+      - key: ARK_BASE_URL
+        value: https://ark.cn-beijing.volces.com/api/v3
+      - key: ARK_MODEL_MAIN
+        value: doubao-seed-2-0-pro-260215
+      - key: ARK_MODEL_LITE
+        value: doubao-seed-2-0-lite-260215
+      - key: IFIND_MCP_TOKEN
+        sync: false
+      - key: IFIND_MCP_URL
+        value: https://mcp.51ifind.com

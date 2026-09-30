@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>投资命题多证据验证台 | Thesis Verifier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#0f2540',
+            brand: '#1d4ed8',
+          },
+          fontFamily: {
+            sans: ['"PingFang SC"', '"Microsoft YaHei"', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+
+  <!-- 顶部导航 -->
+  <header class="bg-ink text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-brand flex items-center justify-center font-bold text-lg">验</div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">投资命题多证据验证台</h1>
+          <p class="text-xs text-slate-300">Investment Thesis Multi-Evidence Verifier</p>
+        </div>
+      </div>
+      <div class="text-xs text-slate-300 hidden sm:block">
+        拆解命题 · 取证验证 · 冲突处理 · 可追溯结论
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- 合规提示条 -->
+    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 flex gap-2">
+      <span class="font-bold">合规说明</span>
+      <span>本产品仅提供基于公开数据的事实验证与研究辅助，<b>不输出确定性涨跌预测、目标价、收益承诺或直接买卖建议</b>；事实、推断与不确定信息均明确区分，关键结论可回溯至原始数据。</span>
+    </div>
+
+    <!-- 输入区 -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+      <label class="block text-sm font-semibold text-ink mb-2">第一步：输入你想验证的投资命题</label>
+      <textarea id="thesisInput" rows="3"
+        class="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:ring-2 focus:ring-brand focus:border-brand outline-none resize-none"
+        placeholder="例如：贵州茅台2023年盈利增长主要来自主营业务"></textarea>
+
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <span class="text-xs text-slate-500">示例：</span>
+        <button class="example-btn text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
+          data-thesis="贵州茅台2023年盈利增长主要来自主营业务">贵州茅台盈利增长来自主营业务</button>
+        <button class="example-btn text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
+          data-thesis="宁德时代估值回落但基本面没有恶化">宁德时代估值回落但基本面未恶化</button>
+        <button class="example-btn text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
+          data-thesis="比亚迪近三年盈利能力持续提升">比亚迪近三年盈利能力持续提升</button>
+      </div>
+
+      <div class="mt-4 flex items-center gap-3">
+        <button id="analyzeBtn"
+          class="px-6 py-2.5 rounded-lg bg-brand hover:bg-blue-700 text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          <span id="analyzeBtnText">开始验证</span>
+        </button>
+        <span id="inputError" class="text-xs text-rose-600 hidden"></span>
+      </div>
+    </section>
+
+    <!-- 进度状态 -->
+    <section id="progressSection" class="hidden mb-8">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="spinner"></div>
+          <span class="text-sm font-semibold text-ink">正在执行验证链路，请稍候（通常需要 1-3 分钟）…</span>
+        </div>
+        <div id="progressSteps" class="space-y-2 text-xs text-slate-600"></div>
+      </div>
+    </section>
+
+    <!-- 结果区 -->
+    <section id="resultSection" class="hidden space-y-8"></section>
+
+    <!-- 顶层错误 -->
+    <section id="errorSection" class="hidden">
+      <div class="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700" id="errorContent"></div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white mt-12">
+    <div class="max-w-6xl mx-auto px-6 py-5 text-xs text-slate-400 flex flex-wrap justify-between gap-2">
+      <span>数据来源：扶摇金融数据 API · iFinD（接入中）；智能能力：豆包大模型</span>
+      <span>投资有风险，本工具结论仅供研究参考，不构成投资建议</span>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

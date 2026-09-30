@@ -1,0 +1,96 @@
+/* 自定义补充样式 */
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #dbeafe;
+  border-top-color: #1d4ed8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 证据卡片左侧色条 */
+.evi-card {
+  border-left-width: 4px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.evi-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 37, 64, 0.08);
+}
+.evi-supporting { border-left-color: #059669; background: #ecfdf5; }
+.evi-opposing   { border-left-color: #e11d48; background: #fff1f2; }
+.evi-unverifiable { border-left-color: #94a3b8; background: #f8fafc; }
+
+/* 标签 */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+}
+.tag-supporting { background: #d1fae5; color: #065f46; }
+.tag-opposing   { background: #ffe4e6; color: #9f1239; }
+.tag-unverifiable { background: #e2e8f0; color: #475569; }
+.tag-fact { background: #dbeafe; color: #1e40af; }
+.tag-inference { background: #fef3c7; color: #92400e; }
+.tag-strong { background: #ede9fe; color: #5b21b6; }
+.tag-medium { background: #f1f5f9; color: #475569; }
+.tag-weak { background: #f1f5f9; color: #64748b; }
+
+/* 结论判断大徽标 */
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.v-confirmed { background: #d1fae5; color: #065f46; }
+.v-partially_confirmed { background: #fef3c7; color: #92400e; }
+.v-refuted { background: #ffe4e6; color: #9f1239; }
+.v-inconclusive { background: #e2e8f0; color: #475569; }
+
+.confidence-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* 折叠面板 */
+.details-toggle { cursor: pointer; user-select: none; }
+.details-content { display: none; }
+.details-content.open { display: block; }
+
+.chevron { transition: transform 0.2s ease; display: inline-block; }
+.chevron.open { transform: rotate(90deg); }
+
+/* 原始数据块 */
+.raw-data {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11px;
+  background: #0f172a;
+  color: #cbd5e1;
+  border-radius: 6px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  white-space: pre;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* 淡入动画 */
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

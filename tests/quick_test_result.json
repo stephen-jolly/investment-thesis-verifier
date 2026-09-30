@@ -1,0 +1,744 @@
+{
+  "ok": true,
+  "result": {
+    "thesis": "贵州茅台2023年盈利增长主要来自主营业务",
+    "thscode": "600519.SH",
+    "decomposition": {
+      "target": {
+        "name": "贵州茅台",
+        "thscode": "600519.SH",
+        "confidence": "high"
+      },
+      "core_claim": "贵州茅台2023年的盈利增长主要由其主营业务贡献，而非非主营业务类收益。",
+      "time_scope": "2023年",
+      "clarifications": [],
+      "sub_questions": [
+        {
+          "id": "sq1",
+          "question": "2023年贵州茅台营业利润占利润总额的比重是否处于较高水平？",
+          "rationale": "营业利润是主营业务经营产生的核心利润，利润总额是企业当期总盈利的税前口径，两者占比直接反映主营业务对总盈利的贡献度。",
+          "tool": "income_statement",
+          "params_hint": "营业利润、利润总额，2023年年报",
+          "verify_logic": "若2023年营业利润占利润总额比重≥90%，说明当期总盈利中主营业务贡献占绝对主导，符合“主要来自主营业务”的初步特征。"
+        },
+        {
+          "id": "sq2",
+          "question": "2023年贵州茅台营业利润同比增速与归母净利润同比增速是否高度匹配？",
+          "rationale": "若盈利增长主要来自主营业务，那么代表主营业务盈利的营业利润的增速应与归母净利润的整体增速基本一致，不存在大幅偏离。",
+          "tool": "income_statement",
+          "params_hint": "营业利润、归母净利润，2022-2023年年报",
+          "verify_logic": "计算2023年营业利润同比增速、归母净利润同比增速，若两者差值绝对值≤3pct，说明盈利增长的核心来源是主营业务利润的增长。"
+        },
+        {
+          "id": "sq3",
+          "question": "2023年贵州茅台营业收入同比增速是否与营业利润同比增速匹配？",
+          "rationale": "主营业务的盈利增长通常伴随营收的同步扩张，若营业利润增速与营收增速匹配，说明利润增长来自主营业务规模扩张或盈利效率提升，而非其他非经常性收益。",
+          "tool": "income_statement",
+          "params_hint": "营业收入、营业利润，2022-2023年年报",
+          "verify_logic": "计算2023年营业收入同比增速、营业利润同比增速，若营业利润增速≥营收增速且差值不超过5pct，说明营业利润增长由主营业务驱动，符合盈利增长来自主营业务的特征。"
+        },
+        {
+          "id": "sq4",
+          "question": "2023年贵州茅台经营活动现金流净额同比增速是否与营业利润增速趋势一致？",
+          "rationale": "经营活动现金流净额反映主营业务实际现金收获能力，其增长趋势与营业利润一致可进一步验证主营业务增长的真实性，排除账面利润调节的干扰。",
+          "tool": "cash_flow",
+          "params_hint": "经营活动现金流净额，2022-2023年年报",
+          "verify_logic": "若2023年经营活动现金流净额同比增速为正，且与同期营业利润增速的差值绝对值在10pct以内，说明主营业务的盈利增长具备现金支撑，盈利质量真实。"
+        }
+      ]
+    },
+    "sub_results": [
+      {
+        "sub_question": {
+          "id": "sq1",
+          "question": "2023年贵州茅台营业利润占利润总额的比重是否处于较高水平？",
+          "rationale": "营业利润是主营业务经营产生的核心利润，利润总额是企业当期总盈利的税前口径，两者占比直接反映主营业务对总盈利的贡献度。",
+          "tool": "income_statement",
+          "params_hint": "营业利润、利润总额，2023年年报",
+          "verify_logic": "若2023年营业利润占利润总额比重≥90%，说明当期总盈利中主营业务贡献占绝对主导，符合“主要来自主营业务”的初步特征。"
+        },
+        "tool_result_meta": {
+          "ok": true,
+          "tool": "income_statement",
+          "source": "扶摇-利润表",
+          "data_time": "2025-12-31",
+          "error": null,
+          "request_id": "c09984a671694eada012a3f88b64d361",
+          "supplement_tool": null
+        },
+        "raw_data": [
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2025,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1767110400000,
+            "currency": "CNY",
+            "operating_income": 168838102514.79,
+            "operating_costs": 14892277570.91,
+            "operating_expenses": 57370818034.33,
+            "sales_fee": 7253499600.68,
+            "manage_fee": 8320061659.66,
+            "research_and_development_expenses": 190112246.58,
+            "operating_profit": 114808950164.24,
+            "interest_expenses": 175775959.12,
+            "profit_total": 114755261605.08,
+            "income_tax_expense": 29444936771.41,
+            "net_profit": 85310324833.67,
+            "parent_holder_net_profit": 82320067101.68,
+            "basic_eps": 65.66
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2024,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1735574400000,
+            "currency": "CNY",
+            "operating_income": 170899152276.34,
+            "operating_costs": 13789482367.98,
+            "operating_expenses": 54523971452.57,
+            "sales_fee": 5639300059.49,
+            "manage_fee": 9315650060.38,
+            "research_and_development_expenses": 218375472.87,
+            "operating_profit": 119688579453.23,
+            "interest_expenses": 105127802.03,
+            "profit_total": 119638578194.46,
+            "income_tax_expense": 30303850168.56,
+            "net_profit": 89334728025.9,
+            "parent_holder_net_profit": 86228146421.62,
+            "basic_eps": 68.64
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2023,
+            "fiscal_period": "FY",
+            "report_date_ms": 1743609600000,
+            "period_end_ms": 1703952000000,
+            "currency": "CNY",
+            "operating_income": 147693604994.14,
+            "operating_costs": 11867273851.78,
+            "operating_expenses": 46960889468.54,
+            "sales_fee": 4648613585.82,
+            "manage_fee": 9729389252.31,
+            "research_and_development_expenses": 157371873.01,
+            "operating_profit": 103708655208.38,
+            "interest_expenses": 113500129.93,
+            "profit_total": 103662553689.81,
+            "income_tax_expense": 26141077412.01,
+            "net_profit": 77521476277.8,
+            "parent_holder_net_profit": 74734071550.75,
+            "basic_eps": 59.49
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2022,
+            "fiscal_period": "FY",
+            "report_date_ms": 1712073600000,
+            "period_end_ms": 1672416000000,
+            "currency": "CNY",
+            "operating_income": 124099843771.99,
+            "operating_costs": 10093468616.63,
+            "operating_expenses": 39748309616.85,
+            "sales_fee": 3297724190.94,
+            "manage_fee": 9012191073.63,
+            "research_and_development_expenses": 135185680.4,
+            "operating_profit": 87879521782.39,
+            "interest_expenses": 105584206.24,
+            "profit_total": 87701489748.18,
+            "income_tax_expense": 22325449790.3,
+            "net_profit": 65376039957.88,
+            "parent_holder_net_profit": 62717467870.12,
+            "basic_eps": 49.93
+          }
+        ],
+        "analysis": {
+          "sub_question_id": "sq1",
+          "summary_verdict": "supported",
+          "summary_reason": "2023年贵州茅台营业利润占利润总额比重约为100.04%，≥90%，处于较高水平。",
+          "evidences": [
+            {
+              "stance": "supporting",
+              "strength": "strong",
+              "type": "inference",
+              "content": "2023年年报数据显示，贵州茅台营业利润为103708655208.38元，利润总额为103662553689.81元，经计算营业利润占利润总额的比重约为100.04%，满足≥90%的判定标准。",
+              "fields": [
+                "operating_profit",
+                "profit_total"
+              ],
+              "source": "扶摇-利润表",
+              "data_time": "2025-12-31"
+            }
+          ]
+        }
+      },
+      {
+        "sub_question": {
+          "id": "sq2",
+          "question": "2023年贵州茅台营业利润同比增速与归母净利润同比增速是否高度匹配？",
+          "rationale": "若盈利增长主要来自主营业务，那么代表主营业务盈利的营业利润的增速应与归母净利润的整体增速基本一致，不存在大幅偏离。",
+          "tool": "income_statement",
+          "params_hint": "营业利润、归母净利润，2022-2023年年报",
+          "verify_logic": "计算2023年营业利润同比增速、归母净利润同比增速，若两者差值绝对值≤3pct，说明盈利增长的核心来源是主营业务利润的增长。"
+        },
+        "tool_result_meta": {
+          "ok": true,
+          "tool": "income_statement",
+          "source": "扶摇-利润表",
+          "data_time": "2025-12-31",
+          "error": null,
+          "request_id": "c09984a671694eada012a3f88b64d361",
+          "supplement_tool": null
+        },
+        "raw_data": [
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2025,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1767110400000,
+            "currency": "CNY",
+            "operating_income": 168838102514.79,
+            "operating_costs": 14892277570.91,
+            "operating_expenses": 57370818034.33,
+            "sales_fee": 7253499600.68,
+            "manage_fee": 8320061659.66,
+            "research_and_development_expenses": 190112246.58,
+            "operating_profit": 114808950164.24,
+            "interest_expenses": 175775959.12,
+            "profit_total": 114755261605.08,
+            "income_tax_expense": 29444936771.41,
+            "net_profit": 85310324833.67,
+            "parent_holder_net_profit": 82320067101.68,
+            "basic_eps": 65.66
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2024,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1735574400000,
+            "currency": "CNY",
+            "operating_income": 170899152276.34,
+            "operating_costs": 13789482367.98,
+            "operating_expenses": 54523971452.57,
+            "sales_fee": 5639300059.49,
+            "manage_fee": 9315650060.38,
+            "research_and_development_expenses": 218375472.87,
+            "operating_profit": 119688579453.23,
+            "interest_expenses": 105127802.03,
+            "profit_total": 119638578194.46,
+            "income_tax_expense": 30303850168.56,
+            "net_profit": 89334728025.9,
+            "parent_holder_net_profit": 86228146421.62,
+            "basic_eps": 68.64
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2023,
+            "fiscal_period": "FY",
+            "report_date_ms": 1743609600000,
+            "period_end_ms": 1703952000000,
+            "currency": "CNY",
+            "operating_income": 147693604994.14,
+            "operating_costs": 11867273851.78,
+            "operating_expenses": 46960889468.54,
+            "sales_fee": 4648613585.82,
+            "manage_fee": 9729389252.31,
+            "research_and_development_expenses": 157371873.01,
+            "operating_profit": 103708655208.38,
+            "interest_expenses": 113500129.93,
+            "profit_total": 103662553689.81,
+            "income_tax_expense": 26141077412.01,
+            "net_profit": 77521476277.8,
+            "parent_holder_net_profit": 74734071550.75,
+            "basic_eps": 59.49
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2022,
+            "fiscal_period": "FY",
+            "report_date_ms": 1712073600000,
+            "period_end_ms": 1672416000000,
+            "currency": "CNY",
+            "operating_income": 124099843771.99,
+            "operating_costs": 10093468616.63,
+            "operating_expenses": 39748309616.85,
+            "sales_fee": 3297724190.94,
+            "manage_fee": 9012191073.63,
+            "research_and_development_expenses": 135185680.4,
+            "operating_profit": 87879521782.39,
+            "interest_expenses": 105584206.24,
+            "profit_total": 87701489748.18,
+            "income_tax_expense": 22325449790.3,
+            "net_profit": 65376039957.88,
+            "parent_holder_net_profit": 62717467870.12,
+            "basic_eps": 49.93
+          }
+        ],
+        "analysis": {
+          "sub_question_id": "sq2",
+          "summary_verdict": "supported",
+          "summary_reason": "2023年贵州茅台营业利润同比增速与归母净利润同比增速差值绝对值约为1.15pct，≤3pct，二者高度匹配。",
+          "evidences": [
+            {
+              "stance": "supporting",
+              "strength": "strong",
+              "type": "inference",
+              "content": "2022年年报营业利润为87879521782.39元，2023年为103708655208.38元，计算得营业利润同比增速约为18.01%；2022年年报归母净利润为62717467870.12元，2023年为74734071550.75元，计算得归母净利润同比增速约为19.16%；二者差值绝对值约为1.15pct，满足≤3pct的判定标准。",
+              "fields": [
+                "operating_profit",
+                "parent_holder_net_profit"
+              ],
+              "source": "扶摇-利润表",
+              "data_time": "2025-12-31"
+            }
+          ]
+        }
+      },
+      {
+        "sub_question": {
+          "id": "sq3",
+          "question": "2023年贵州茅台营业收入同比增速是否与营业利润同比增速匹配？",
+          "rationale": "主营业务的盈利增长通常伴随营收的同步扩张，若营业利润增速与营收增速匹配，说明利润增长来自主营业务规模扩张或盈利效率提升，而非其他非经常性收益。",
+          "tool": "income_statement",
+          "params_hint": "营业收入、营业利润，2022-2023年年报",
+          "verify_logic": "计算2023年营业收入同比增速、营业利润同比增速，若营业利润增速≥营收增速且差值不超过5pct，说明营业利润增长由主营业务驱动，符合盈利增长来自主营业务的特征。"
+        },
+        "tool_result_meta": {
+          "ok": true,
+          "tool": "income_statement",
+          "source": "扶摇-利润表",
+          "data_time": "2025-12-31",
+          "error": null,
+          "request_id": "c09984a671694eada012a3f88b64d361",
+          "supplement_tool": null
+        },
+        "raw_data": [
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2025,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1767110400000,
+            "currency": "CNY",
+            "operating_income": 168838102514.79,
+            "operating_costs": 14892277570.91,
+            "operating_expenses": 57370818034.33,
+            "sales_fee": 7253499600.68,
+            "manage_fee": 8320061659.66,
+            "research_and_development_expenses": 190112246.58,
+            "operating_profit": 114808950164.24,
+            "interest_expenses": 175775959.12,
+            "profit_total": 114755261605.08,
+            "income_tax_expense": 29444936771.41,
+            "net_profit": 85310324833.67,
+            "parent_holder_net_profit": 82320067101.68,
+            "basic_eps": 65.66
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2024,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1735574400000,
+            "currency": "CNY",
+            "operating_income": 170899152276.34,
+            "operating_costs": 13789482367.98,
+            "operating_expenses": 54523971452.57,
+            "sales_fee": 5639300059.49,
+            "manage_fee": 9315650060.38,
+            "research_and_development_expenses": 218375472.87,
+            "operating_profit": 119688579453.23,
+            "interest_expenses": 105127802.03,
+            "profit_total": 119638578194.46,
+            "income_tax_expense": 30303850168.56,
+            "net_profit": 89334728025.9,
+            "parent_holder_net_profit": 86228146421.62,
+            "basic_eps": 68.64
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2023,
+            "fiscal_period": "FY",
+            "report_date_ms": 1743609600000,
+            "period_end_ms": 1703952000000,
+            "currency": "CNY",
+            "operating_income": 147693604994.14,
+            "operating_costs": 11867273851.78,
+            "operating_expenses": 46960889468.54,
+            "sales_fee": 4648613585.82,
+            "manage_fee": 9729389252.31,
+            "research_and_development_expenses": 157371873.01,
+            "operating_profit": 103708655208.38,
+            "interest_expenses": 113500129.93,
+            "profit_total": 103662553689.81,
+            "income_tax_expense": 26141077412.01,
+            "net_profit": 77521476277.8,
+            "parent_holder_net_profit": 74734071550.75,
+            "basic_eps": 59.49
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2022,
+            "fiscal_period": "FY",
+            "report_date_ms": 1712073600000,
+            "period_end_ms": 1672416000000,
+            "currency": "CNY",
+            "operating_income": 124099843771.99,
+            "operating_costs": 10093468616.63,
+            "operating_expenses": 39748309616.85,
+            "sales_fee": 3297724190.94,
+            "manage_fee": 9012191073.63,
+            "research_and_development_expenses": 135185680.4,
+            "operating_profit": 87879521782.39,
+            "interest_expenses": 105584206.24,
+            "profit_total": 87701489748.18,
+            "income_tax_expense": 22325449790.3,
+            "net_profit": 65376039957.88,
+            "parent_holder_net_profit": 62717467870.12,
+            "basic_eps": 49.93
+          }
+        ],
+        "analysis": {
+          "sub_question_id": "sq3",
+          "summary_verdict": "opposed",
+          "summary_reason": "2023年贵州茅台营业利润同比增速约为18.01%，低于营业收入同比增速约19.01%，不满足营业利润增速≥营收增速的判定条件。",
+          "evidences": [
+            {
+              "stance": "opposing",
+              "strength": "strong",
+              "type": "inference",
+              "content": "2022年年报营业收入为124099843771.99元，2023年为147693604994.14元，计算得营业收入同比增速约为19.01%；2023年营业利润同比增速约为18.01%，低于营收增速0.99pct，不满足营业利润增速≥营收增速的判定条件。",
+              "fields": [
+                "operating_income",
+                "operating_profit"
+              ],
+              "source": "扶摇-利润表",
+              "data_time": "2025-12-31"
+            }
+          ]
+        }
+      },
+      {
+        "sub_question": {
+          "id": "sq4",
+          "question": "2023年贵州茅台经营活动现金流净额同比增速是否与营业利润增速趋势一致？",
+          "rationale": "经营活动现金流净额反映主营业务实际现金收获能力，其增长趋势与营业利润一致可进一步验证主营业务增长的真实性，排除账面利润调节的干扰。",
+          "tool": "cash_flow",
+          "params_hint": "经营活动现金流净额，2022-2023年年报",
+          "verify_logic": "若2023年经营活动现金流净额同比增速为正，且与同期营业利润增速的差值绝对值在10pct以内，说明主营业务的盈利增长具备现金支撑，盈利质量真实。"
+        },
+        "tool_result_meta": {
+          "ok": true,
+          "tool": "cash_flow",
+          "source": "扶摇-现金流量表",
+          "data_time": "2025-12-31",
+          "error": null,
+          "request_id": "04c7b3e99fce47808d3068cfb6d55f31",
+          "supplement_tool": "income_statement"
+        },
+        "raw_data": [
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2025,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1767110400000,
+            "currency": "CNY",
+            "act_cash_flow_net": 61522204989.35,
+            "invest_cash_flow_net": -31641898948.89,
+            "financing_cash_flow_net": -73427081208.87,
+            "pay_fixed_assets_etc_cash": 3127594916.41,
+            "pay_dividends_profits_interest_cash": 67241733345.45,
+            "cash_equivalents_net_addition": -43544479810.11
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2024,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1735574400000,
+            "currency": "CNY",
+            "act_cash_flow_net": 92463692168.43,
+            "invest_cash_flow_net": -1785202630.71,
+            "financing_cash_flow_net": -71067506484.81,
+            "pay_fixed_assets_etc_cash": 4678712053.56,
+            "pay_dividends_profits_interest_cash": 70951027702.94,
+            "cash_equivalents_net_addition": 19609900305.36
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2023,
+            "fiscal_period": "FY",
+            "report_date_ms": 1743609600000,
+            "period_end_ms": 1703952000000,
+            "currency": "CNY",
+            "act_cash_flow_net": 66593247721.09,
+            "invest_cash_flow_net": -9724414015.16,
+            "financing_cash_flow_net": -58889101991.94,
+            "pay_fixed_assets_etc_cash": 2619755888.79,
+            "pay_dividends_profits_interest_cash": 58754786730.01,
+            "cash_equivalents_net_addition": -2018550030.36
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2022,
+            "fiscal_period": "FY",
+            "report_date_ms": 1712073600000,
+            "period_end_ms": 1672416000000,
+            "currency": "CNY",
+            "act_cash_flow_net": 36698595830.03,
+            "invest_cash_flow_net": -5536826334.9,
+            "financing_cash_flow_net": -57424528979.83,
+            "pay_fixed_assets_etc_cash": 5306546416.54,
+            "pay_dividends_profits_interest_cash": 57370196191.46,
+            "cash_equivalents_net_addition": -26261848396.69
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2025,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1767110400000,
+            "currency": "CNY",
+            "operating_income": 168838102514.79,
+            "operating_costs": 14892277570.91,
+            "operating_expenses": 57370818034.33,
+            "sales_fee": 7253499600.68,
+            "manage_fee": 8320061659.66,
+            "research_and_development_expenses": 190112246.58,
+            "operating_profit": 114808950164.24,
+            "interest_expenses": 175775959.12,
+            "profit_total": 114755261605.08,
+            "income_tax_expense": 29444936771.41,
+            "net_profit": 85310324833.67,
+            "parent_holder_net_profit": 82320067101.68,
+            "basic_eps": 65.66
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2024,
+            "fiscal_period": "FY",
+            "report_date_ms": 1776355200000,
+            "period_end_ms": 1735574400000,
+            "currency": "CNY",
+            "operating_income": 170899152276.34,
+            "operating_costs": 13789482367.98,
+            "operating_expenses": 54523971452.57,
+            "sales_fee": 5639300059.49,
+            "manage_fee": 9315650060.38,
+            "research_and_development_expenses": 218375472.87,
+            "operating_profit": 119688579453.23,
+            "interest_expenses": 105127802.03,
+            "profit_total": 119638578194.46,
+            "income_tax_expense": 30303850168.56,
+            "net_profit": 89334728025.9,
+            "parent_holder_net_profit": 86228146421.62,
+            "basic_eps": 68.64
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2023,
+            "fiscal_period": "FY",
+            "report_date_ms": 1743609600000,
+            "period_end_ms": 1703952000000,
+            "currency": "CNY",
+            "operating_income": 147693604994.14,
+            "operating_costs": 11867273851.78,
+            "operating_expenses": 46960889468.54,
+            "sales_fee": 4648613585.82,
+            "manage_fee": 9729389252.31,
+            "research_and_development_expenses": 157371873.01,
+            "operating_profit": 103708655208.38,
+            "interest_expenses": 113500129.93,
+            "profit_total": 103662553689.81,
+            "income_tax_expense": 26141077412.01,
+            "net_profit": 77521476277.8,
+            "parent_holder_net_profit": 74734071550.75,
+            "basic_eps": 59.49
+          },
+          {
+            "thscode": "600519.SH",
+            "ticker": "600519",
+            "period": "annual",
+            "fiscal_year": 2022,
+            "fiscal_period": "FY",
+            "report_date_ms": 1712073600000,
+            "period_end_ms": 1672416000000,
+            "currency": "CNY",
+            "operating_income": 124099843771.99,
+            "operating_costs": 10093468616.63,
+            "operating_expenses": 39748309616.85,
+            "sales_fee": 3297724190.94,
+            "manage_fee": 9012191073.63,
+            "research_and_development_expenses": 135185680.4,
+            "operating_profit": 87879521782.39,
+            "interest_expenses": 105584206.24,
+            "profit_total": 87701489748.18,
+            "income_tax_expense": 22325449790.3,
+            "net_profit": 65376039957.88,
+            "parent_holder_net_profit": 62717467870.12,
+            "basic_eps": 49.93
+          }
+        ],
+        "analysis": {
+          "sub_question_id": "sq4",
+          "summary_verdict": "opposed",
+          "summary_reason": "2023年贵州茅台经营活动现金流净额同比增速与同期营业利润增速的差值绝对值约63.45个百分点，远超10个百分点的阈值，增速趋势不一致。",
+          "evidences": [
+            {
+              "stance": "opposing",
+              "strength": "strong",
+              "type": "inference",
+              "content": "2022年贵州茅台经营活动现金流净额为36698595830.03元，2023年为66593247721.09元，经计算2023年经营活动现金流净额同比增速约为81.46%，为正增长。",
+              "fields": [
+                "act_cash_flow_net"
+              ],
+              "source": "扶摇-现金流量表",
+              "data_time": "2025-12-31"
+            },
+            {
+              "stance": "opposing",
+              "strength": "strong",
+              "type": "inference",
+              "content": "2022年贵州茅台营业利润为87879521782.39元，2023年为103708655208.38元，经计算2023年营业利润同比增速约为18.01%，为正增长。",
+              "fields": [
+                "operating_profit"
+              ],
+              "source": "扶摇-利润表",
+              "data_time": "2025-12-31"
+            },
+            {
+              "stance": "opposing",
+              "strength": "strong",
+              "type": "inference",
+              "content": "2023年经营活动现金流净额同比增速与同期营业利润增速的差值绝对值约为63.45个百分点，远高于10个百分点的判定阈值。",
+              "fields": [
+                "act_cash_flow_net",
+                "operating_profit"
+              ],
+              "source": "扶摇-现金流量表、扶摇-利润表",
+              "data_time": "2025-12-31"
+            }
+          ]
+        }
+      }
+    ],
+    "conclusion": {
+      "verdict": "partially_confirmed",
+      "confidence": "high",
+      "confidence_reason": "所有验证依据均为贵州茅台公开年报的官方财务数据，证据强度高，不存在无法验证的子问题；核心判定营业是否为主要盈利来源的两个子问题获得强支持，另外两项匹配性子问题存在明确反对证据，结论可信度高。",
+      "summary": "贵州茅台2023年营业利润占利润总额比重接近100%，且营业利润增速与归母净利润增速差值仅1.15个百分点，核心指标支持其盈利的主要来源为营业相关业务。但2023年营业利润增速略低于营业收入增速，同时经营活动现金流净额增速与营业利润增速差值超过60个百分点，两项匹配性指标未达标准。目前可判断命题部分成立，需进一步核实相关差异的产生原因，才能确认盈利增长是否完全由主营业务贡献。",
+      "conflicts": [],
+      "flip_conditions": [
+        {
+          "condition": "2023年营业利润中非主营业务收益（投资收益、其他收益、资产处置收益等）占比超过5%",
+          "monitor_indicator": "非主营业务收益占营业利润的比重",
+          "impact": "推翻核心支持证据，命题由部分成立变为不成立"
+        },
+        {
+          "condition": "核实2023年营业利润增速低于营收增速的原因是主营业务成本/费用的正常波动，无大额非主营业务支出侵蚀利润",
+          "monitor_indicator": "营业利润与营收增速差异的原因拆解",
+          "impact": "消除一项反对证据，若同时现金流差异也来自主业，命题升级为成立"
+        },
+        {
+          "condition": "核实2023年经营活动现金流净额与营业利润增速差异的来源为非主营业务相关的现金流（如非主业业务预收款项、往来款等）",
+          "monitor_indicator": "经营活动现金流大额增量的业务来源",
+          "impact": "新增非主业贡献的证据，命题由部分成立变为不成立"
+        },
+        {
+          "condition": "核实2023年经营活动现金流净额与营业利润增速差异的来源为白酒主业相关的预收款增加、回款政策调整",
+          "monitor_indicator": "经营活动现金流大额增量的业务来源",
+          "impact": "消除一项反对证据，若同时营业利润增速差异为主业原因，命题升级为成立"
+        }
+      ],
+      "next_steps": [
+        "拆解2023年营业利润的构成，核算投资收益、其他收益等非主营业务收益占营业利润的比重，确认营业利润是否完全来自主营业务",
+        "分析2023年营业利润增速低于营业收入增速的具体原因，区分是主营业务成本、税金上升导致还是非主营业务支出侵蚀导致",
+        "拆解2023年经营活动现金流净额大幅增长的具体来源，确认大额现金流增量是否与白酒主营业务相关"
+      ]
+    },
+    "meta": {
+      "total_elapsed_ms": 260717,
+      "data_tool_groups": [
+        "income_statement",
+        "cash_flow"
+      ],
+      "trace": [
+        {
+          "step": "decompose",
+          "status": "ok",
+          "elapsed_ms": 51537,
+          "sub_question_count": 4
+        },
+        {
+          "step": "resolve_target",
+          "status": "ok",
+          "elapsed_ms": 0,
+          "thscode": "600519.SH"
+        },
+        {
+          "step": "evidence_group_income_statement",
+          "status": "ok",
+          "elapsed_ms": 50378,
+          "tool": "income_statement",
+          "sub_question_count": 3,
+          "fetch_ok": true
+        },
+        {
+          "step": "evidence_group_cash_flow",
+          "status": "ok",
+          "elapsed_ms": 39844,
+          "tool": "cash_flow",
+          "sub_question_count": 1,
+          "fetch_ok": true
+        },
+        {
+          "step": "conclusion",
+          "status": "ok",
+          "elapsed_ms": 118658
+        }
+      ],
+      "generated_at": "2026-09-30 16:11:23"
+    }
+  }
+}
