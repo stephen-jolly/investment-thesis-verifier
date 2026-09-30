@@ -39,7 +39,7 @@ async def build_conclusion(thesis: str, sub_results: list) -> dict:
     try:
         result = await chat_json(
             CONCLUSION_SYSTEM, user_prompt,
-            model=settings.ARK_MODEL_MAIN, temperature=0.2,
+            model=settings.ARK_MODEL_LITE, temperature=0.2,
         )
     except Exception as e:
         # 结论模型失败时的兜底
@@ -65,7 +65,7 @@ async def build_conclusion(thesis: str, sub_results: list) -> dict:
 
 async def stream_report(thesis: str, target_name: str, thscode: str,
                         conclusion: dict, sub_results: list,
-                        annual_report_links: str):
+                        sources_text: str):
     """基于结构化结论与证据，流式 yield 面向用户的 Markdown 报告文本。"""
     compact = _compact_sub_results(sub_results)
     user_prompt = REPORT_USER.format(
@@ -74,7 +74,7 @@ async def stream_report(thesis: str, target_name: str, thscode: str,
         thscode=thscode or "",
         conclusion_json=json.dumps(conclusion, ensure_ascii=False, indent=2),
         sub_results_json=json.dumps(compact, ensure_ascii=False, indent=2),
-        annual_report_links=annual_report_links or "无",
+        sources_text=sources_text or "无",
     )
     messages = [
         {"role": "system", "content": REPORT_SYSTEM},

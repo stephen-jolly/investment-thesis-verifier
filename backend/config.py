@@ -20,7 +20,9 @@ class Settings:
 
     # iFinD MCP
     IFIND_MCP_TOKEN: str = os.getenv("IFIND_MCP_TOKEN", "")
-    IFIND_MCP_URL: str = os.getenv("IFIND_MCP_URL", "https://mcp.51ifind.com")
+    IFIND_MCP_URL: str = os.getenv(
+        "IFIND_MCP_URL",
+        "https://api-mcp.51ifind.com:8643/ds-mcp-servers/hexin-ifind-ds-mcp")
 
 
 settings = Settings()

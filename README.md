@@ -40,7 +40,7 @@
 ② 标的确认 ── 解析为完整 thscode（如 600519.SH），缺失时用检索接口兜底
    │
    ▼
-③ 分组取证 ── 按所需数据工具对子问题分组，同一工具只取一次数（含限流退避重试）
+③ 分组取证 ── 按数据工具分组，扶摇与 iFinD 多源【并行】取数（含限流退避重试）
    │
    ▼
 ④ 证据分类 ── 对每个子问题输出 supporting / opposing / unverifiable 证据
@@ -68,7 +68,7 @@
 | 关键依据 | 最多 3 条要点，每条包含关键数字并在句末标注数据来源 |
 | 子问题验证 | 每个子问题一行「问题：结论」，不展开冗长推理 |
 | 关键翻转条件 | 2–3 条，说明哪些指标达到什么阈值会改变结论 |
-| 资料来源 | 列出数据来源，并附**巨潮资讯网年报原文链接**，可点击溯源（不向用户倾倒原始 JSON） |
+| 资料来源 | 列出 iFinD **具体公告标题与发布日期**，并附巨潮资讯网年报原文链接，可点击溯源（不向用户倾倒原始 JSON） |
 | 多轮追问 | 基于已有结论继续提问，回答逐字真流式输出、结合上下文、区分事实与推断 |
 | 范围边界 | 与投资研究无关的问题（如问日期、闲聊、写代码）礼貌说明服务范围并引导，不强行作答 |
 | 会话历史回放 | 会话保存在侧边栏，刷新后可点击回放完整 Markdown 报告（服务内存期内） |
@@ -96,8 +96,8 @@
 | 数据源 | 用途 | 接入方式 |
 |---|---|---|
 | **扶摇金融数据 API** | A 股行情快照、历史 K 线、利润表 / 资产负债表 / 现金流量表、财务指标、标的检索 | REST，请求头 `X-api-key` |
-| **iFinD MCP** | 公告、研报、新闻等文本类证据 | MCP（当前版本接入中，见「已知边界」） |
-| **豆包大模型** | 命题拆解、证据分类、结论生成、追问 | 火山引擎方舟 OpenAI 兼容接口 |
+| **同花顺 iFinD MCP** | 公告原文段落（法定披露）、日频金融指标（财报科目/财务比率/估值/单季度）、财经新闻、宏观行业指标 | MCP（Streamable HTTP），请求头 `Authorization` 直接放个人令牌 |
+| **豆包大模型** | 命题拆解、证据分类、结论生成、报告撰写、追问 | 火山引擎方舟 OpenAI 兼容接口 |
 
 所有结论均标注**来源、时点、单位、字段与统计口径**，可回溯至原始数据。
 
@@ -111,7 +111,9 @@ investment-thesis-verifier/
 │   ├── main.py                 # FastAPI：/api/chat(SSE 流式)、/api/conversation/{id}、/api/health
 │   ├── config.py               # 环境变量配置
 │   ├── data_sources/
-│   │   └── fuyao.py            # 扶摇 API 封装（统一响应结构 + 429 退避重试）
+│   │   ├── fuyao.py            # 扶摇 API 封装（统一响应结构 + 429 退避重试）
+│   │   ├── ifind_mcp.py        # iFinD MCP 客户端（握手/会话复用/限流重试）
+│   │   └── ifind_data.py       # iFinD MCP 取数与解析（公告/指标/新闻/宏观）
 │   ├── agents/
 │   │   ├── llm_client.py       # 大模型调用：稳健 JSON 解析 + 流式输出 + 网络/格式重试
 │   │   ├── decomposer.py       # 环节① 命题拆解
@@ -158,6 +160,7 @@ cp .env.example .env
 FUYAO_API_KEY=你的扶摇Key
 ARK_API_KEY=你的方舟Key
 ARK_MODEL_MAIN=doubao-seed-2-0-pro-260215
+IFIND_MCP_TOKEN=你的iFinD个人令牌（可选）
 ```
 
 ### 4. 启动服务
@@ -176,7 +179,7 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 1. 将本仓库推送到 GitHub；
 2. Render → **New +** → **Blueprint**，选择本仓库（会自动读取 `render.yaml`）；
-3. 在 **Environment** 中填写 `FUYAO_API_KEY`、`ARK_API_KEY`（以及可选 `IFIND_MCP_TOKEN`）；
+3. 在 **Environment** 中填写 `FUYAO_API_KEY`、`ARK_API_KEY`、`IFIND_MCP_TOKEN`（`IFIND_MCP_URL` 已有默认值，通常无需修改）；
 4. 部署完成后获得可公开访问的 Web URL。
 
 ---
@@ -189,14 +192,14 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 | POST | `/api/chat` | 统一对话入口（SSE 流式），自动区分「新命题 / 追问」，body：`{"message": "...", "conversation_id": "可选"}` |
 | GET | `/api/conversation/{conv_id}` | 历史会话回放，返回最近一次完整验证结果 |
 
-`/api/chat` 以 Server-Sent Events 逐帧推送 `status / decomposition / tool_start / sub_results / conclusion / answer_delta / done / error` 等事件，并带心跳保活；前端据此实时渲染工作过程与结构化卡片。
+`/api/chat` 以 Server-Sent Events 逐帧推送 `session / meta / status / report_start / answer_delta / followup_done / done / error` 等事件，并带心跳保活；前端据此实时渲染进度与流式 Markdown 报告。
 
 ---
 
 ## 十一、测试说明
 
 - `tests/quick_test.py`：端到端主链路（表单版接口）；
-- `tests/test_sse.py`：对话版 SSE 两轮测试 —— ① 新命题事件逐帧推送、子问题卡片随取证出现、最终结论；② 同一会话追问、意图识别与逐字流式回答。
+- `tests/test_sse.py`：对话版 SSE 三轮测试 —— ① 新命题：进度提示与流式 Markdown 报告；② 同一会话追问、意图识别与逐字流式回答；③ 无关问题识别为 out_of_scope 并引导。
 
 测试覆盖：
 
@@ -210,7 +213,7 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 ## 十二、已知边界
 
-1. **iFinD MCP 文本源接入中**：公告 / 研报 / 新闻类证据当前返回「无法验证」，未静默伪造；结构化财务与行情数据链路已完整。
+1. **iFinD MCP 已接入、但语义检索存在波动**：公告原文与金融指标可稳定支撑核心结论；个别年报附注项（如分产品明细、投资收益合计）在检索未命中时如实标注「无法验证」，不静默伪造。
 2. **结论为「验证」而非「预测」**：产品回答「命题是否被现有数据支持」，不对未来走势做确定性判断。
 3. **数据口径以扶摇返回为准**：金额为原币元、EPS 为元/股；字段为 `null` 表示未披露，不补零。
 4. **单次取数记录上限**：为控制上下文，原始数据默认展示前 8 条记录。
@@ -220,7 +223,8 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 ## 十三、未做事项（Roadmap）
 
-- [ ] 完成 iFinD MCP（SSE / Streamable HTTP）接入，支持公告、研报、新闻原文溯源；
+- [x] 接入 iFinD MCP（Streamable HTTP），支持公告原文、金融指标、新闻、宏观行业数据溯源；
+- [ ] 扩展 iFinD 细分服务（基金 / 债券 / 港美股 / 期货）与研报原文；
 - [ ] 多个命题 / 多家公司的横向对比视图；
 - [ ] 研究任务的持久化保存（数据库替代内存）、定时复查与翻转条件自动告警；
 - [ ] 更丰富的图表类型与证据图谱；
